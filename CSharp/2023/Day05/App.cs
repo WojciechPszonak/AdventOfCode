@@ -14,6 +14,13 @@ public class App : Base
         public long DestinationShift { get; set; }
     }
 
+    public class Range(long start, long end)
+    {
+        public long Start { get; set; } = start;
+
+        public long End { get; set; } = end;
+    }
+
     public ICollection<Map> GetMaps(string[] input, ref int startIndex)
     {
         var maps = new List<Map>();
@@ -104,12 +111,66 @@ public class App : Base
         return GetMinLocation(seeds);
     }
 
+    private Range[] MergeRanges(Range[] ranges)
+    {
+        ranges = [.. ranges.OrderBy(x => x.Start)];
+
+        var merged = new List<Range>();
+        var agg = ranges[0];
+
+        for (var i = 1; i < ranges.Length; i++)
+        {
+            var curr = ranges[i];
+
+            if (agg.End >= curr.Start - 1)
+            {
+                agg.End = Math.Max(agg.End, curr.End);
+            }
+            else
+            {
+                merged.Add(agg);
+                agg = curr;
+            }
+        }
+
+        merged.Add(agg);
+        return [.. merged];
+    }
+
     public override object Part2(string[] input)
     {
+        var ranges = new Range[seeds.Length / 2];
+
         for (var i = 0; i < seeds.Length; i += 2)
         {
-            var seed = seeds[i];
-            var range = seeds[i + 1];
+            var seedStart = seeds[i];
+            var length = seeds[i + 1];
+
+            var seedEnd = seedStart + length - 1;
+
+            ranges[i / 2] = new(seedStart, seedEnd);
         }
+
+        var tasks = new List<Task>();
+
+        foreach (var range in ranges)
+        {
+            var seeds2 = new List<long>();
+
+            for (var i = range.Start; i < range.End; i++)
+            {
+                seeds2.Add(i);
+            }
+
+            var task = Task.Run(() =>
+            {
+                var location = GetMinLocation([.. seeds2]);
+                Console.WriteLine(location);
+            });
+            tasks.Add(task);
+        }
+
+        Task.WhenAll(tasks).Wait();
+        return null!;
     }
 }
