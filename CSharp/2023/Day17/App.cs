@@ -6,8 +6,6 @@ public partial class App : Base
     private int width;
     private int height;
 
-    private const int MaxSteps = 3;
-
     private enum Direction { Left, Right, Up, Down };
 
     private record Node(int X, int Y, Direction Direction)
@@ -62,7 +60,7 @@ public partial class App : Base
         return base.Parse(input);
     }
 
-    public override object Part1(string[] input)
+    private int GetMinimumHeatLoss(int minSteps, int maxSteps)
     {
         var end = (width - 1, height - 1);
 
@@ -90,7 +88,7 @@ public partial class App : Base
 
             visited.Add(state.Node);
 
-            var neighbors = GetUnvisitedNeighbors(state.Node);
+            var neighbors = GetUnvisitedNeighbors(state.Node, minSteps, maxSteps);
 
             foreach (var neighbor in neighbors)
             {
@@ -107,7 +105,7 @@ public partial class App : Base
         return -1;
     }
 
-    private Node[] GetUnvisitedNeighbors(Node current)
+    private Node[] GetUnvisitedNeighbors(Node current, int minSteps, int maxSteps)
     {
         var possibleNeighbors = new Dictionary<Direction, (int X, int Y)>()
         {
@@ -118,7 +116,7 @@ public partial class App : Base
         };
 
         return possibleNeighbors
-            .Where(node => ((node.Key == current.Direction && current.StepsInDirection < MaxSteps) || node.Key == current.Left || node.Key == current.Right)
+            .Where(node => ((node.Key == current.Direction && current.StepsInDirection < maxSteps) || (current.StepsInDirection >= minSteps && (node.Key == current.Left || node.Key == current.Right)))
                 && node.Value.X >= 0 && node.Value.X < width
                 && node.Value.Y >= 0 && node.Value.Y < height)
             .Select(node => new Node(node.Value.X, node.Value.Y, node.Key))
@@ -134,8 +132,13 @@ public partial class App : Base
         return new State(nextNode, newDistance);
     }
 
+    public override object Part1(string[] input)
+    {
+        return GetMinimumHeatLoss(1, 3);
+    }
+
     public override object Part2(string[] input)
     {
-        throw new NotImplementedException();
+        return GetMinimumHeatLoss(4, 10);
     }
 }
