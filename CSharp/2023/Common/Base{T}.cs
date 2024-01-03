@@ -2,6 +2,8 @@
 {
     public abstract class Base<T>
     {
+        protected bool isTest;
+
         private static string[] Read(bool useTest = false)
             => [.. File.ReadAllLines(useTest ? "input2.txt" : "input.txt")];
 
@@ -26,6 +28,8 @@
 
         public virtual void Run(bool useTest = false)
         {
+            isTest = useTest;
+
             var input = Read(useTest);
             var data = Parse(input);
 
